@@ -1,0 +1,24 @@
+{
+  "name": "project7-twit",
+  "version": "1.0.0",
+  "description": "Build A Twitter Interface",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/salgc826/project7-twit.git"
+  },
+  "author": "Carlos Salgado",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/salgc826/project7-twit/issues"
+  },
+  "homepage": "https://github.com/salgc826/project7-twit#readme",
+  "dependencies": {
+    "express": "^4.16.2",
+    "pug": "^2.0.0-rc.4",
+    "twit": "^2.2.9"
+  }
+}
