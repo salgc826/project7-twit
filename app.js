@@ -32,8 +32,8 @@ moment.updateLocale('en', {
     }
   });
 
-// Sets port to 3000 
-app.set('port', process.env.PORT || 3000);
+// Sets port 8080 instead of localhost:3000 due to conflict on my comp
+app.set('port', process.env.PORT || 8080);
 app.listen(app.get('port'));
 
 // Sets pugs as view engine
