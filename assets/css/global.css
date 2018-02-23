@@ -5,6 +5,25 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+.error {
+  max-width: 800px;
+  width: 90%;
+  margin: 0 auto;
+}
+
+.error .error-text  {
+  font-size: 14px;
+  font-family: "Work Sans", sans-serif;
+  background-color: #f8f8f8;
+  padding: 20px;
+  margin-top: 30px;
+  overflow-x: scroll;
+}
+.error .error-text pre {
+  font-size: 14px;
+  font-family: "Work Sans", sans-serif;
+}
+
 /* line 19, ../sass/circle/core/_reset.sass */
 body {
   margin: 0;
@@ -2335,6 +2354,7 @@ a:hover .app--avatar {
 .app--tweet--actions, .app--user--actions {
   margin-bottom: -5px;
 }
+
 /* line 162, ../sass/global.sass */
 .app--tweet--actions li, .app--user--actions li {
   margin: 0;
@@ -2344,6 +2364,9 @@ a:hover .app--avatar {
   color: #7dc9f8;
   position: relative;
   cursor: pointer;
+}
+.app--tweet--actions a strong, .app--user--actions a strong {
+  margin-left: 6px;
 }
 /* line 168, ../sass/global.sass */
 .app--tweet--actions a:hover, .app--user--actions a:hover {
@@ -2409,6 +2432,9 @@ a:hover .app--avatar {
 /* line 207, ../sass/global.sass */
 .app--message--list, .app--message--conversation {
   list-style: none;
+}
+.app--message--conversation, .app--message--list {
+  margin-bottom: 120px !important;
 }
 /* line 210, ../sass/global.sass */
 .app--message--list .app--avatar, .app--message--conversation .app--avatar {
@@ -2490,6 +2516,27 @@ a:hover .app--avatar {
   background: #1da1f2 url("../images/message-tail-me.svg") no-repeat;
   left: auto;
   right: -8px;
+}
+
+.app--tweet--list > li.app--tweet--retweeted, .app--user--list > li.app--tweet--retweeted {
+  padding-left: 20px;
+  border-bottom: none;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  margin-bottom: -10px;
+  background-color: #f8f8f8;
+}
+
+.app--tweet--retweeted .app--tweet--actions a svg {
+  bottom: -6px;
+  float: left;
+  margin-right: 10px;
+  fill: #c3c0c0;
+}
+
+.app--tweet--retweeted .app--tweet--actions a p {
+  color: grey;
+  font-size: 1.6rem;
 }
 
 /* line 272, ../sass/global.sass */

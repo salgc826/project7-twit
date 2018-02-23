@@ -1,0 +1,17 @@
+ul.app--message--list
+  li
+    h3 Most recent conversations 
+    ul.app--message--conversation
+      for dm in fivedms
+        if dm.sender.id === currentUser.id
+          li.app--message--me
+            .app--avatar(style=`background-image: url(${dm.sender.profile_image_url})`)
+              img(src=`${dm.sender.profile_image_url}`)
+            p.app--message--text= dm.text
+            p.app--message--timestamp= dm.moment_time
+        else
+          li.app--message
+            .app--avatar(style=`background-image: url(${dm.sender.profile_image_url})`)
+              img(src=`${dm.sender.profile_image_url}`)
+            p.app--message--text= dm.text
+            p.app--message--timestamp= dm.moment_time

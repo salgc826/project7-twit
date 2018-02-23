@@ -1,0 +1,12 @@
+ul.app--user--list
+  for twitterer in following.users
+    li
+      .circle--fluid
+        .circle--fluid--cell.circle--fluid--primary
+          a.app--tweet--author
+            .app--avatar(style=`background-image: url(${twitterer.profile_image_url})`)
+              img(src=`${twitterer.profile_image_url}`)
+            h4= twitterer.name
+            p @#{twitterer.screen_name}
+        .circle--fluid--cell
+          a.button.button-text Unfollow

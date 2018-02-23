@@ -1,115 +1,162 @@
+// Variables for various library imports
 const express = require('express');
-const Twit = require('twit');
-const config = require('./config');
-
 const app = express();
-const T = new Twit(config);
+const config = require('./config');
+const Twit = require('twit')
+const t = new Twit(config);
+const bodyParser = require('body-parser');
+const http = require('http');
+const server = http.createServer(app);
+const moment = require('moment');
 
-app.use('/static', express.static('public'));
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json());
 
-// Set view engine to pug
+// Updates the relative time to format as "4m" or "1h"
+moment.updateLocale('en', {
+    relativeTime: {
+      future: 'in %s',
+      past: '%s',
+      s:  'now',
+      ss: '%ss',
+      m:  '1m',
+      mm: '%dm',
+      h:  '1h',
+      hh: '%dh',
+      d:  '1d',
+      dd: '%dd',
+      M:  '1m',
+      MM: '%dM',
+      y:  '1y',
+      yy: '%dY'
+    }
+  });
+
+// Sets port to localhost:3000 
+app.set('port', process.env.PORT || 3000);
+app.listen(app.get('port'));
+
+// Sets pugs as view engine
 app.set('view engine', 'pug');
 
+// Sets up static path for images
+const path = require('path')
+app.use(express.static(path.join(__dirname, 'assets')));
 
-let numOfTweets = 5;
-let numOfFriends = 5;
-let numOfMessages = 5;
-
-
-// Create an object to hold the data from Twitter
-
-var myTweetArray = {
-  tweets: {},
-  friends: {},
-  direct_messages: {}
-};
-
-// Tweet timeline
-
-T.get('statuses/user_timeline', {count: numOfTweets}, function(err, data, response) {
-
-  if (err) {
-    console.log(err);
+// Uses Twit to call various data about the user and their twitter experience
+app.use(
+  (req, res, next) => {
+    // Calls user's home timeline
+    t.get('statuses/home_timeline', { count: 5 }, function (err, data, response) {
+      if(err) {
+        return next(err)
+      }
+      req.tweets = data;
+      next();
+    });
+  }, (req, res, next) => {
+    // Calls the friends (following) data
+    t.get('friends/list', { count: 5 }, function (err, data, response) {
+      if(err) {
+        return next(err)
+      }
+      req.following = data;
+      next();
+    });
+  }, (req, res, next) => {
+    // Gets the direct messages the user has *received*
+    t.get('direct_messages', { count: 5 }, function (err, data, response) {
+      if(err) {
+        return next(err)
+      }
+      req.dmsreceived = data;
+      next(err);
+    });
+  }, (req, res, next) => {
+    // Gets the direct messages the user has *sent*
+    t.get('direct_messages/sent', { count: 5 }, function (err, data, response) {
+      if(err) {
+        return next(err)
+      }
+      req.dmssent = data;
+      next();
+    });
+  }, (req, res, next) => {
+    // Gets user data for background image etc
+    t.get('account/verify_credentials', function (err, data, response) {
+      if(err) {
+        return next(err)
+      }
+      req.currentUser = data;
+      next();
+    });
   }
+)
 
-  // Add the amount of elapsed time since each tweet to the data object
+// Node call when app is created at the index
+app.get('/', function(req, res){
 
-  for ( i = 0; i < numOfTweets; i++) {
-    data[i].timeFromTweet = returnTimeFromTweet(data[i].created_at)
-  }
+  // Sets up collections as simple variables
+  const { tweets, following, dmsreceived, dmssent, currentUser } = req;
 
-  // Add the data to the myTweetArray
+  // Adds relative time as new key value pair on element
+  tweets.forEach(function(item, index, arr) {
+   const date = moment(item.created_at, 'ddd MMM D HH:mm:ss Z YYYY');
+   item.moment_time = date.fromNow();
+  })
 
-  myTweetArray.tweets = data;
+  // Combines sent and received DMs into one array
+  const alldms = dmsreceived.concat(dmssent);
 
+  // Adds relative time as new key value pair on Direct Message
+  alldms.forEach(function(item, index, arr) {
+   const date = moment(item.created_at, 'ddd MMM D HH:mm:ss Z YYYY');
+   item.moment_fulltime = date;
+   item.moment_time = date.fromNow();
+  })
+
+  // Sorts sent and received DMs based on the time they were created
+  alldms.sort(function(a, b){
+    return a.moment_fulltime-b.moment_fulltime;
+  })
+
+  // Reverses order to be most recent -> least recent, slices to 5 DMs total
+  alldms.reverse();
+  const fivedms = alldms.slice(0,5);
+
+  // Renders page and passes in variable information
+  res.render('index', { tweets, following, fivedms, currentUser });
 });
 
-// Following
-
-T.get('friends/list', { count: numOfFriends },  function (err, data, response) {
-
-  if (err) {
-    console.log(err);
+// Handles the AJAX post request from tweetpost.js
+app.post('/', function(req, res) {
+  // Creates an object with the user info and tweet information
+  const jsonResponse = {
+    tweetText: req.body.newTweet,
+    currentUser: req.currentUser
   }
-
-  myTweetArray.friends = data;
-
+  res.json(jsonResponse);
+  // Function that posts to twitter. Comment out to avoid actually posting.
+  t.post('statuses/update', { status: req.body.newTweet }, function(err, data, response) {
+    if (err) {
+      return next(err);
+    } else {
+      console.log("Tweet has been twittered.")
+    }
+  })
 });
 
-// Direct Messages
+// If route is not found, render 404
+app.use((req,res,next) => {
+  const err = new Error('Not Found');
+  err.status = 404;
+  next(err);
+})
 
-T.get('direct_messages', { count: numOfMessages },  function (err, data, response) {
-
-  if(err) {
-    console.log(err);
-  }
-
-  // Add the amount of elapsed time since each message to the data object
-
-  for ( i = 0; i < numOfMessages; i++) {
-    data[i].timeFromTweet = returnTimeFromTweet(data[i].created_at);
-  }
-
-  myTweetArray.direct_messages = data;
-
+app.use((err, req, res, next) => {
+  res.locals.error = err;
+  res.status(err.status);
+  res.render('error');
 });
 
-app.get('/', (req, res) => {
-
-	res.render('index', { myTweetArray : myTweetArray });
-
-});
-
-app.listen(3000);
-
-
-/**********************
-      FUNCTIONS
-**********************/
-
-function returnTimeFromTweet(timeStamp) {
-
-  var date1 = new Date(timeStamp);
-
-  var date2 = new Date();
-
-  msDifference = date2-date1; // Difference in milliseconds
-
-  secondsDifference = Math.floor(msDifference/1000);
-  minutesDifference = Math.floor(msDifference/60000);
-
-  if (secondsDifference < 60) {
-    timeFromTweet = secondsDifference + "s";
-  } else if (minutesDifference < 60) {
-    timeFromTweet = minutesDifference + "m";
-  } else if (minutesDifference < 1440) { // minutes in a day
-    timeFromTweet = (Math.floor(minutesDifference/60)) + "h";
-  } else if (minutesDifference < 42560) { // minutes in a month
-    timeFromTweet = (Math.floor(minutesDifference/1440)) + "d";
-  } else if (minutesDifference < 525949) { // minutes in a year
-    timeFromTweet = (Math.floor(minutesDifference/42560)) + "mo";
-  } else {
-    timeFromTweet = (Math.floor(minutesDifference/525949)) + "yr";
-  }
-  return timeFromTweet;
-}
+server.listen(process.env.PORT, process.env.IP);

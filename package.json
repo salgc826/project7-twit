@@ -17,7 +17,10 @@
   },
   "homepage": "https://github.com/salgc826/project7-twit#readme",
   "dependencies": {
+    "body-parser": "^1.18.2",
+    "config": "^1.29.4",
     "express": "^4.16.2",
+    "moment": "^2.20.1",
     "pug": "^2.0.0-rc.4",
     "twit": "^2.2.9"
   }
